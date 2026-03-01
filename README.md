@@ -42,24 +42,3 @@ const nexus = new NexusOrchestrator({
 nexus.submit(async () => {
   return await fetchVitalData();
 }, { priority: 100 });
-
-
-🌐 Deployment & GitHub Pages (The "Level 5" Guide)
-
-If GitHub suggests a Jekyll workflow, ignore it. Jekyll is for blogs; this is a high-performance application.
-
-Method A: The Simple Way (No Code Required)
-
-Go to your repo Settings > Pages.
-
-Under Build and deployment > Source, change the dropdown from "GitHub Actions" to "Deploy from a branch".
-
-Select main and / (root), then click Save.
-
-Your site will be live in ~60 seconds.
-
-Method B: The "Architect" Way (Using GitHub Actions)
-
-If you prefer using the Actions tab, use the Static HTML workflow provided in .github/workflows/deploy.yml in this repo. This bypasses Jekyll entirely and pushes your index.html directly to the edge.
-
-Architected by CODER // 13thrule
