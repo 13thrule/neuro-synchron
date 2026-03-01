@@ -1,7 +1,7 @@
 Nexus Orchestrator // Adaptive Task Scheduling
 https://13thrule.github.io/neuro-synchron/
 Nexus Orchestrator is an experimental, high-performance task scheduling engine that moves beyond simple execution into the realm of Control Theory. It treats your software system as a living organism that must dynamically respond to environmental pressure (CPU lag) and internal trauma (task failures).
-
+<p align="center"><img src="Neuro.png" width="800"></p>
 Standard task queues use static concurrency limits. Nexus uses a Closed-Loop Feedback System to maximize throughput while guaranteeing system stability.
 
 🧠 The Architectural Thesis
