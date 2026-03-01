@@ -27,18 +27,3 @@ If a failure threshold is met, the system enters a "Tripped" state, halting exec
 4. Mathematical Entropy (Jittered Backoff)
 
 Nexus injects Randomized Jitter into an exponential backoff algorithm. This spreads the load across the time-domain, which is the mathematically optimal way to recover from transient failures.
-
-🚀 Quick Start
-
-const nexus = new NexusOrchestrator({
-  initialConcurrency: 5,
-  maxConcurrency: 50,
-  circuitThreshold: 3,
-  circuitResetTimeout: 5000,
-  adaptiveSteering: true
-});
-
-// Submit tasks
-nexus.submit(async () => {
-  return await fetchVitalData();
-}, { priority: 100 });
