@@ -1,276 +1,1055 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURO-SYNCHRON // ARCHITECTURAL_SUPREMACY_v23.0</title>
-    <style>
-        :root {
-            --bg: #000103;
-            --accent: #00f2ff;
-            --warn: #ff0055;
-            --low: #00ffaa;
-            --font: 'JetBrains Mono', 'Fira Code', monospace;
-        }
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background: var(--bg); color: var(--accent);
-            font-family: var(--font); overflow: hidden;
-            text-transform: uppercase;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuro-Synchron</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-        #hud {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 100;
-            display: flex; flex-direction: column; justify-content: space-between;
-            padding: 40px; box-sizing: border-box;
-        }
+:root{
+  --bg:#020304;
+  --ink:#e8eaf0;
+  --ink-dim:rgba(232,234,240,0.35);
+  --ink-ghost:rgba(232,234,240,0.1);
+  --glass:rgba(2,3,4,0.72);
+  --glass-light:rgba(255,255,255,0.04);
+  --edge:rgba(255,255,255,0.07);
+  --edge-bright:rgba(255,255,255,0.18);
+  --accent:#c8f0ff;
+  --accent2:#ffd6e8;
+  --r:8px;
+  --panel:260px;
+}
 
-        .panel {
-            background: rgba(0, 5, 10, 0.96);
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            padding: 25px; backdrop-filter: blur(60px);
-            pointer-events: all;
-            box-shadow: 0 20px 80px rgba(0,0,0,1);
-        }
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'Syne',sans-serif}
 
-        .header-grid { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
-        .title-unit h1 { margin: 0; font-size: 34px; letter-spacing: 12px; font-weight: 100; line-height: 1; }
-        
-        .control-unit { border-left: 2px solid var(--warn); padding-left: 25px; }
-        input[type=range] { width: 100%; accent-color: var(--warn); cursor: pointer; margin-top: 15px; }
+/* CUSTOM CURSOR */
+#cursor{position:fixed;pointer-events:none;z-index:9999;mix-blend-mode:difference}
+#cursor-dot{width:6px;height:6px;border-radius:50%;background:#fff;position:absolute;transform:translate(-50%,-50%);transition:transform 0.1s,width 0.2s,height 0.2s}
+#cursor-ring{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.5);position:absolute;transform:translate(-50%,-50%);transition:transform 0.08s cubic-bezier(0.23,1,0.32,1),width 0.3s,height 0.3s,opacity 0.3s}
+body.clicking #cursor-dot{width:10px;height:10px}
+body.clicking #cursor-ring{width:24px;height:24px}
+body.hovering #cursor-ring{width:56px;height:56px;opacity:0.4}
 
-        /* THE MASTER TECHNICAL WHITEPAPER */
-        #logic-modal {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%; max-width: 1100px;
-            max-height: 85vh; overflow-y: auto;
-            display: none; z-index: 2000;
-        }
+/* CANVAS STACK */
+#canvas-wrap{position:fixed;inset:0;z-index:0}
+#glCanvas{position:absolute;inset:0;width:100%;height:100%}
+#bloomCanvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:0.55;pointer-events:none}
 
-        .whitepaper {
-            background: #000; border: 1px solid var(--accent);
-            padding: 60px; color: #fff; text-transform: none;
-            line-height: 1.8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
+/* GRAIN OVERLAY */
+#grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");background-size:200px}
 
-        .whitepaper h2 { font-family: var(--font); color: var(--accent); text-transform: uppercase; letter-spacing: 5px; margin-bottom: 30px; border-bottom: 1px solid var(--accent); padding-bottom: 20px; }
-        .whitepaper h3 { font-family: var(--font); color: var(--warn); text-transform: uppercase; margin-top: 45px; font-size: 15px; border-left: 3px solid var(--warn); padding-left: 15px; }
-        
-        .math-block { background: #0a0a0a; padding: 25px; font-family: var(--font); font-size: 13px; color: var(--low); border-radius: 4px; margin: 20px 0; border: 1px solid #222; }
-        .theory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
-        
-        .phenomenon { border-top: 1px solid #333; padding-top: 15px; margin-top: 15px; }
-        .phenomenon b { color: var(--accent); text-transform: uppercase; font-size: 12px; font-family: var(--font); }
-        
-        .status-pill { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 10px; font-weight: 900; background: var(--low); color: #000; margin-bottom: 10px; }
+/* VIGNETTE */
+#vig{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 40%,rgba(2,3,4,0.85) 100%)}
 
-        /* FOOTER HUD */
-        .footer-grid { display: grid; grid-template-columns: 450px 1fr 350px; gap: 30px; align-items: flex-end; }
-        .nexus-bridge { border-left: 2px solid var(--low); padding-left: 20px; }
-        .lbl { font-size: 9px; opacity: 0.5; letter-spacing: 3px; font-weight: 900; }
-        .val { font-size: 24px; font-weight: 100; }
+/* SCENE NAME OVERLAY */
+#scene-name{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;text-align:center;transition:opacity 0.8s}
+#scene-name.hidden{opacity:0}
+#scene-title{font-size:clamp(48px,8vw,96px);font-weight:800;letter-spacing:-0.02em;line-height:1;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#scene-sub{font-family:'Syne Mono',monospace;font-size:12px;letter-spacing:0.25em;color:var(--ink-dim);margin-top:10px}
 
-        canvas { position: absolute; top: 0; left: 0; z-index: 1; cursor: grab; }
-        canvas:active { cursor: grabbing; }
-        .vignette { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, transparent 20%, rgba(0,0,0,1) 100%); pointer-events: none; z-index: 5; }
-        
-        .btn-logic {
-            background: var(--accent); border: none; color: #000;
-            padding: 12px 30px; font-family: var(--font); font-weight: 900;
-            cursor: pointer; margin-top: 20px; transition: 0.3s;
-            text-transform: uppercase; box-shadow: 0 4px 0px #008899;
-        }
-        .btn-logic:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,242,255,0.4); }
-    </style>
+/* LEFT PANEL */
+#panel-left{
+  position:fixed;left:0;top:0;bottom:0;width:var(--panel);z-index:10;
+  background:var(--glass);border-right:1px solid var(--edge);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  display:flex;flex-direction:column;
+  transform:translateX(0);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+#panel-left.hidden{transform:translateX(calc(-1 * var(--panel)))}
+
+/* RIGHT PANEL */
+#panel-right{
+  position:fixed;right:0;top:0;bottom:0;width:var(--panel);z-index:10;
+  background:var(--glass);border-left:1px solid var(--edge);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  display:flex;flex-direction:column;
+  transform:translateX(0);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+#panel-right.hidden{transform:translateX(var(--panel))}
+
+/* TOP BAR */
+#topbar{
+  position:fixed;top:0;left:var(--panel);right:var(--panel);height:52px;z-index:10;
+  background:var(--glass);border-bottom:1px solid var(--edge);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  transition:left 0.4s cubic-bezier(0.4,0,0.2,1),right 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+#topbar.full{left:0;right:0}
+
+/* BOTTOM BAR */
+#bottombar{
+  position:fixed;bottom:0;left:var(--panel);right:var(--panel);height:44px;z-index:10;
+  background:var(--glass);border-top:1px solid var(--edge);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  transition:left 0.4s,right 0.4s;
+}
+#bottombar.full{left:0;right:0}
+
+/* LOGO */
+.logo{font-family:'Syne Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--accent);text-transform:uppercase}
+
+/* NAV PILLS */
+.nav-pills{display:flex;gap:4px}
+.nav-pill{padding:5px 12px;border-radius:20px;border:1px solid var(--edge);background:transparent;color:var(--ink-dim);font-family:'Syne',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em}
+.nav-pill:hover,.nav-pill.active{background:var(--glass-light);border-color:var(--edge-bright);color:var(--ink)}
+.nav-pill.active{color:var(--accent)}
+
+/* ACTION BUTTONS */
+.act-btn{height:30px;padding:0 14px;border-radius:20px;border:1px solid var(--edge);background:transparent;color:var(--ink-dim);font-family:'Syne',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;letter-spacing:0.05em}
+.act-btn:hover{background:var(--glass-light);border-color:var(--edge-bright);color:var(--ink)}
+.act-btn.bright{border-color:var(--accent);color:var(--accent);background:rgba(200,240,255,0.06)}
+.act-btn.bright:hover{background:rgba(200,240,255,0.12)}
+
+/* PANEL SECTIONS */
+.psec{padding:16px;border-bottom:1px solid var(--edge)}
+.psec:last-child{border-bottom:none}
+.plabel{font-family:'Syne Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--ink-ghost);text-transform:uppercase;margin-bottom:12px}
+
+/* SCENE GRID */
+.scene-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.scene-card{
+  border:1px solid var(--edge);border-radius:var(--r);padding:10px 9px;
+  cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden;
+  background:transparent;
+}
+.scene-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.3s}
+.scene-card:hover{border-color:var(--edge-bright)}
+.scene-card.active{border-color:rgba(200,240,255,0.4)}
+.scene-card.active::before{opacity:1}
+.scene-nm{font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:1px}
+.scene-tg{font-family:'Syne Mono',monospace;font-size:9px;color:var(--ink-dim);letter-spacing:0.1em}
+.scene-dot{width:5px;height:5px;border-radius:50%;position:absolute;top:9px;right:9px;transition:all 0.2s}
+
+/* KNOB ROW */
+.krow{margin-bottom:13px}
+.krow:last-child{margin-bottom:0}
+.khdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.klbl{font-size:11px;color:var(--ink-dim)}
+.kval{font-family:'Syne Mono',monospace;font-size:10px;color:var(--accent)}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:2px;
+  border-radius:1px;outline:none;cursor:pointer;
+  background:linear-gradient(to right,var(--accent) 0%,var(--accent) var(--pct,50%),var(--edge-bright) var(--pct,50%),var(--edge-bright) 100%);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+  background:var(--ink);border:2px solid var(--accent);
+  box-shadow:0 0 12px rgba(200,240,255,0.5);transition:transform 0.1s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
+
+/* PALETTE STRIP */
+.pal-row{display:flex;gap:5px;flex-wrap:wrap}
+.pal-sw{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;flex-shrink:0}
+.pal-sw:hover{transform:scale(1.15)}
+.pal-sw.active{border-color:#fff;transform:scale(1.1)}
+
+/* SPECTRUM */
+#spectrum-wrap{height:48px;display:flex;align-items:flex-end;gap:2px;padding:0}
+.spec-bar{flex:1;border-radius:2px 2px 0 0;min-height:2px;transition:height 0.04s linear;background:var(--accent)}
+
+/* TIMER */
+.timer-face{display:flex;flex-direction:column;align-items:center;padding:8px 0 4px}
+.timer-svg-wrap{position:relative;width:90px;height:90px;margin-bottom:6px}
+.timer-big{font-size:22px;font-weight:300;font-family:'Syne Mono',monospace;color:var(--ink);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;letter-spacing:0.05em}
+.timer-phase{font-family:'Syne Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--ink-dim);text-transform:uppercase;margin-bottom:10px}
+.tbtn-row{display:flex;gap:5px;width:100%}
+.tbtn{flex:1;padding:7px;border:1px solid var(--edge);border-radius:var(--r);background:transparent;color:var(--ink-dim);font-family:'Syne',sans-serif;font-size:11px;cursor:pointer;transition:all 0.15s}
+.tbtn:hover{background:var(--glass-light);border-color:var(--edge-bright);color:var(--ink)}
+.tbtn.go{border-color:rgba(200,240,255,0.3);color:var(--accent);background:rgba(200,240,255,0.04)}
+.tbtn.go:hover{background:rgba(200,240,255,0.1)}
+
+/* STATS */
+.stats-row{display:flex;gap:16px}
+.stat{display:flex;flex-direction:column}
+.stat-v{font-family:'Syne Mono',monospace;font-size:14px;color:var(--ink)}
+.stat-l{font-size:9px;color:var(--ink-ghost);letter-spacing:0.1em;margin-top:1px}
+
+/* AUDIO TOGGLE */
+.atog{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sw-wrap{position:relative;width:32px;height:18px;flex-shrink:0}
+.sw-wrap input{opacity:0;width:0;height:0}
+.sw-track{position:absolute;inset:0;border-radius:9px;background:var(--edge-bright);cursor:pointer;transition:background 0.2s}
+.sw-wrap input:checked+.sw-track{background:var(--accent)}
+.sw-track::after{content:'';position:absolute;left:3px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);transition:transform 0.2s}
+.sw-wrap input:checked+.sw-track::after{transform:translateX(14px)}
+.atog-lbl{font-size:11px;color:var(--ink-dim)}
+
+/* STATUS */
+.status-line{display:flex;align-items:center;gap:6px}
+.sdot{width:5px;height:5px;border-radius:50%;background:#6bffb8;animation:blink 2.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.sdot.warn{background:#ff6b6b}
+.stxt{font-family:'Syne Mono',monospace;font-size:10px;color:var(--ink-dim);letter-spacing:0.08em}
+
+/* HIDE CHROME */
+#toggle-chrome{
+  position:fixed;bottom:60px;right:10px;z-index:20;
+  width:32px;height:32px;border-radius:50%;
+  border:1px solid var(--edge);background:var(--glass);
+  color:var(--ink-dim);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(12px);transition:all 0.2s;
+}
+#toggle-chrome:hover{color:var(--ink);border-color:var(--edge-bright)}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--glass);border:1px solid var(--edge-bright);
+  border-radius:20px;padding:8px 20px;font-size:12px;color:var(--accent);
+  opacity:0;transition:all 0.3s;backdrop-filter:blur(20px);
+  pointer-events:none;z-index:999;letter-spacing:0.08em;
+  font-family:'Syne Mono',monospace;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* CROSSHAIR */
+#xhair{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0.03}
+#xhair::before,#xhair::after{content:'';position:absolute;background:var(--ink)}
+#xhair::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%)}
+#xhair::after{top:50%;left:0;right:0;height:1px;transform:translateY(-50%)}
+
+/* SCROLL PANEL */
+.pscroll{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.pscroll::-webkit-scrollbar{display:none}
+
+/* PANEL HEADER */
+.phdr{padding:14px 16px 12px;border-bottom:1px solid var(--edge);flex-shrink:0}
+.phdr-title{font-family:'Syne Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--ink-dim);text-transform:uppercase}
+
+/* ANIMATE IN */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp 0.5s ease both}
+</style>
 </head>
 <body>
 
-    <div class="vignette"></div>
+<!-- CURSOR -->
+<div id="cursor"><div id="cursor-dot"></div><div id="cursor-ring"></div></div>
 
-    <div id="logic-modal">
-        <div class="panel whitepaper">
-            <div class="status-pill">LEVEL 5 ARCHITECTURE // VERIFIED</div>
-            <h2>Full Architectural Narrative: Neuro-Synchron</h2>
-            <p>This system demonstrates <strong>GPGPU Computational Supremacy</strong>. While standard web applications struggle to animate 2,000 DOM elements, this kernel manages <strong>16,777,216 nodes</strong> by treating the GPU as a massive parallel differential equation solver.</p>
-            
-            <div class="theory-grid">
-                <div>
-                    <h3>I. Core Mathematical Logic</h3>
-                    <p>The "Jellyfish" organic structure is the result of solving the <strong>Aizawa Attractor</strong> system. Every particle ID is mapped to a trajectory defined by:</p>
-                    <div class="math-block">
-                        $$\dot{x} = (z-0.7)x - 3.5y$$
-                        $$\dot{y} = 3.5x + (z-0.7)y$$
-                        $$\dot{z} = 0.6 + 0.95z - \frac{z^3}{3} - (x^2 + y^2)(1 + 0.25z) + 0.1zx^3$$
-                    </div>
-                </div>
-                <div>
-                    <h3>II. Adaptive Backpressure (Nexus)</h3>
-                    <p>The <strong>Nexus Unit</strong> is the "Stability Guardian." It calculates the <em>Delta Time</em> ($\Delta t$) of the host environment. If $\Delta t > 16.6ms$, it triggers <strong>Throttling</strong>, reducing "Neural Tension" to prevent system-wide lag while maintaining the visual narrative.</p>
-                </div>
-            </div>
+<!-- CANVAS -->
+<div id="canvas-wrap">
+  <canvas id="glCanvas"></canvas>
+  <canvas id="bloomCanvas"></canvas>
+</div>
 
-            <h3>III. Visual Phenomenology Breakdown</h3>
-            
-            <div class="phenomenon">
-                <b>The "Sunstorm" Atmosphere:</b>
-                <p>Ghost particles floating above the main core are a result of <strong>Volumetric Depth Scattering</strong>. By utilizing the inherent precision limits of the depth buffer at 16M scale, we create a solar-flare effect that provides 3D atmospheric depth at zero computational cost.</p>
-            </div>
+<!-- OVERLAYS -->
+<div id="grain"></div>
+<div id="vig"></div>
+<div id="xhair"></div>
 
-            <div class="phenomenon">
-                <b>Neural DNA Filaments:</b>
-                <p>The thread-like coiling is achieved through <strong>Interleaved Parametric Helices</strong>. By shifting the phase of $10^7$ particles using a stochastic jitter ($hash(id)$), we break mathematical resonance and transform geometric circles into organic, code-like fibers.</p>
-            </div>
+<!-- SCENE NAME FLASH -->
+<div id="scene-name" class="hidden">
+  <div id="scene-title">NEBULA</div>
+  <div id="scene-sub">FOCUS · 1.0M NODES</div>
+</div>
 
-            <div class="phenomenon">
-                <b>Kinetic Chromaticism:</b>
-                <p>Colors are not assigned; they are <strong>Earned</strong>. Every node calculates its local velocity. High-velocity nodes undergo a spectral shift (Violet to Cyan to White), revealing the energy distribution of the chaotic field.</p>
-            </div>
+<!-- TOP BAR -->
+<div id="topbar">
+  <span class="logo">Neuro-Synchron</span>
+  <div class="nav-pills">
+    <button class="nav-pill active" data-tab="scenes">Scenes</button>
+    <button class="nav-pill" data-tab="params">Parameters</button>
+    <button class="nav-pill" data-tab="flow">Flow</button>
+    <button class="nav-pill" data-tab="timer">Focus</button>
+  </div>
+  <div style="display:flex;gap:6px">
+    <button class="act-btn" id="btn-share">Share</button>
+    <button class="act-btn bright" id="btn-export">↓ Save PNG</button>
+  </div>
+</div>
 
-            <button class="btn-logic" onclick="document.getElementById('logic-modal').style.display='none'">RESUME_SYSTEM_ORCHESTRATION</button>
+<!-- LEFT PANEL -->
+<div id="panel-left">
+  <div class="phdr"><div class="phdr-title" id="left-title">Scenes</div></div>
+  <div class="pscroll">
+
+    <!-- SCENES TAB -->
+    <div id="tab-scenes" class="psec">
+      <div class="scene-grid" id="scene-grid"></div>
+    </div>
+
+    <!-- PARAMS TAB -->
+    <div id="tab-params" class="psec" style="display:none">
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Particles</span><span class="kval" id="kv-count">1.0M</span></div>
+        <input type="range" id="sl-count" min="65536" max="4194304" step="65536" value="1048576">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Flow speed</span><span class="kval" id="kv-speed">1.00×</span></div>
+        <input type="range" id="sl-speed" min="0.05" max="4" step="0.05" value="1">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Turbulence</span><span class="kval" id="kv-turb">0.50</span></div>
+        <input type="range" id="sl-turb" min="0" max="3" step="0.05" value="0.5">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Point size</span><span class="kval" id="kv-size">1.00×</span></div>
+        <input type="range" id="sl-size" min="0.2" max="4" step="0.05" value="1">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Attractor pull</span><span class="kval" id="kv-pull">3.60</span></div>
+        <input type="range" id="sl-pull" min="1" max="8" step="0.1" value="3.6">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Spread</span><span class="kval" id="kv-spread">4.40</span></div>
+        <input type="range" id="sl-spread" min="0" max="12" step="0.1" value="4.4">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Bloom</span><span class="kval" id="kv-bloom">0.55</span></div>
+        <input type="range" id="sl-bloom" min="0" max="1" step="0.01" value="0.55">
+      </div>
+    </div>
+
+    <!-- FLOW DIRECTION -->
+    <div id="tab-flow" class="psec" style="display:none">
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Vertical tilt</span><span class="kval" id="kv-tiltX">0.00</span></div>
+        <input type="range" id="sl-tiltX" min="-1.57" max="1.57" step="0.02" value="0">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Horizontal tilt</span><span class="kval" id="kv-tiltY">0.00</span></div>
+        <input type="range" id="sl-tiltY" min="-1.57" max="1.57" step="0.02" value="0">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Gravity pull</span><span class="kval" id="kv-gravity">0.00</span></div>
+        <input type="range" id="sl-gravity" min="-2" max="2" step="0.05" value="0">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Z distribution</span><span class="kval" id="kv-zscale">1.00</span></div>
+        <input type="range" id="sl-zscale" min="-1" max="2" step="0.05" value="1">
+      </div>
+      <div class="krow" style="margin-top:16px">
+        <div class="khdr"><span class="klbl">Mirror symmetry</span><span class="kval" id="kv-sym">Off</span></div>
+        <div style="display:flex;gap:5px;margin-top:4px">
+          <button class="tbtn go" id="sym-off" style="font-size:10px;padding:5px">Off</button>
+          <button class="tbtn" id="sym-on" style="font-size:10px;padding:5px">Mirror</button>
         </div>
+      </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--edge)">
+        <button class="tbtn" id="btn-reset-flow" style="width:100%;font-size:11px">Reset to centre</button>
+      </div>
     </div>
 
-    <div id="hud">
-        <header class="header-grid">
-            <div class="panel">
-                <div class="lbl">Engine_System_Identity</div>
-                <div class="title-unit"><h1>NEURO-SYNCHRON</h1></div>
-                <button class="btn-logic" onclick="document.getElementById('logic-modal').style.display='block'">ACCESS_TECHNICAL_WHITEPAPER</button>
-            </div>
-            <div class="panel control-unit">
-                <div class="lbl">Computational_Magnitude</div>
-                <div class="val" id="node-display">1,048,576</div>
-                <input type="range" id="node-slider" min="1024" max="16777216" step="1024" value="1048576">
-                <div class="lbl" style="margin-top: 5px;">Active_GPGPU_Kernels</div>
-            </div>
-        </header>
-
-        <footer class="footer-grid">
-            <div class="panel nexus-bridge">
-                <div class="lbl">Nexus_Controller_Stability</div>
-                <div id="nexus-status" class="val" style="color: var(--low);">STABLE_OSCILLATION</div>
-                <div class="lbl" style="opacity: 0.3;">Closed-Loop_Backpressure: ACTIVE</div>
-            </div>
-            <div></div>
-            <div class="panel" style="text-align: right; border-left: none; border-right: 2px solid var(--warn);">
-                <div class="lbl">Neural_Tension (Stability)</div>
-                <div id="tension-val" class="val" style="color: var(--warn);">0.0000</div>
-                <div class="lbl">Signal_Latency: <span id="lag-val">0.00ms</span></div>
-            </div>
-        </footer>
+    <!-- PALETTE (always visible below active tab) -->
+    <div class="psec" id="pal-section">
+      <div class="plabel">Colour palette</div>
+      <div class="pal-row" id="pal-grid"></div>
     </div>
 
-    <canvas id="glCanvas"></canvas>
+    <!-- TIMER TAB -->
+    <div id="tab-timer" class="psec" style="display:none">
+      <div class="timer-face">
+        <div class="timer-svg-wrap">
+          <svg width="90" height="90" viewBox="0 0 90 90" style="transform:rotate(-90deg)">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/>
+            <circle id="t-ring" cx="45" cy="45" r="38" fill="none" stroke="url(#tg)" stroke-width="3" stroke-linecap="round"
+              stroke-dasharray="238.76" stroke-dashoffset="0"/>
+            <defs><linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#c8f0ff"/><stop offset="100%" stop-color="#ffd6e8"/>
+            </linearGradient></defs>
+          </svg>
+          <div class="timer-big" id="t-display">25:00</div>
+        </div>
+        <div class="timer-phase" id="t-phase">Focus session</div>
+        <div class="tbtn-row">
+          <button class="tbtn go" id="t-start">Start</button>
+          <button class="tbtn" id="t-reset">Reset</button>
+          <button class="tbtn" id="t-skip">Skip</button>
+        </div>
+      </div>
+    </div>
 
-    <script type="module">
-        const canvas = document.getElementById('glCanvas');
-        const gl = canvas.getContext('webgl2', { antialias: false });
+    <!-- AUDIO (always visible) -->
+    <div class="psec">
+      <div class="plabel">Audio reactivity</div>
+      <div class="atog">
+        <label class="sw-wrap"><input type="checkbox" id="aud-tog"><div class="sw-track"></div></label>
+        <span class="atog-lbl">Mic input</span>
+      </div>
+      <div id="spectrum-wrap"></div>
+      <div class="krow" style="margin-top:10px">
+        <div class="khdr"><span class="klbl">Sensitivity</span><span class="kval" id="kv-sens">1.0×</span></div>
+        <input type="range" id="sl-sens" min="0.1" max="6" step="0.1" value="1">
+      </div>
+    </div>
 
-        const vs = `#version 300 es
-            uniform float uTime;
-            uniform mat4 uProj, uView, uModel;
-            uniform vec3 uMouse;
-            uniform float uTension;
-            uniform float uMaxNodes;
-            layout(location = 0) in float aId;
-            out vec3 vCol;
-            out float vIntensity;
-            float hash(float n) { return fract(sin(n) * 43758.5453123); }
-            vec3 palette(float t) {
-                vec3 a = vec3(0.5); vec3 b = vec3(0.5); vec3 c = vec3(1.0); vec3 d = vec3(0.0, 0.33, 0.67);
-                return a + b * cos(6.28318 * (c * t + d + uTime * 0.04));
-            }
-            void main() {
-                float id = aId;
-                float seed = hash(id);
-                float t = id * 0.00002 + seed * 0.1; 
-                float flow = uTime * 0.08 + (id * 0.000001) + (seed * 0.2);
-                float a=0.95, b=0.7, c=0.6, d=3.5, e=0.25, f=0.1;
-                float x = sin(flow * 11.0);
-                float y = cos(flow * 9.0);
-                float z = seed * 14.0;
-                vec3 pos = vec3((z-b)*x - d*y, d*x + (z-b)*y, c + a*z - (z*z*z)/3.0 - (x*x+y*y)*(1.0+e*z) + f*z*(x*x*x)) * 3.6;
-                float hemi = id > (uMaxNodes / 2.0) ? 1.0 : -1.0;
-                pos.x += hemi * 4.4;
-                float radius = 4.0 + sin(t * 70.0 + uTime) * 2.5;
-                vec3 strandPos = vec3(radius * cos(t * 250.0), (t * 50.0) - 25.0, radius * sin(t * 250.0));
-                pos = mix(pos, strandPos, clamp(sin(id * 0.01), 0.0, 1.0) * 0.35);
-                pos += sin(pos.yzx * 0.35 + uTime) * (uTension * 3.5);
-                float focus = clamp(1.0 - (length(pos - uMouse) / 15.0), 0.0, 1.0);
-                vec4 mvPos = uView * uModel * vec4(pos, 1.0);
-                gl_Position = uProj * mvPos;
-                float velocity = length(vec3(x, y, z)) * 0.05;
-                vIntensity = clamp(uTension + pow(focus, 3.0) + velocity, 0.0, 1.5);
-                vCol = palette((id / uMaxNodes) + focus * 0.3 + velocity);
-                if(vIntensity > 1.2) vCol = mix(vCol, vec3(1.0), (vIntensity - 1.2) * 2.0);
-                gl_PointSize = clamp((1.1 + vIntensity * 4.0 + focus * 4.0) * (45.0 / -mvPos.z), 0.4, 16.0);
-            }
-        `;
+  </div>
 
-        const fs = `#version 300 es
-            precision highp float;
-            in vec3 vCol; in float vIntensity;
-            out vec4 fragColor;
-            void main() {
-                float d = distance(gl_PointCoord, vec2(0.5));
-                if(d > 0.5) discard;
-                fragColor = vec4(vCol, pow(1.0 - d * 2.0, 3.5) * (0.05 + vIntensity * 0.95));
-            }
-        `;
+  <!-- BOTTOM STATUS -->
+  <div style="padding:12px 16px;border-top:1px solid var(--edge);flex-shrink:0">
+    <div class="status-line">
+      <div class="sdot" id="sdot"></div>
+      <span class="stxt" id="stxt">READY</span>
+    </div>
+  </div>
+</div>
 
-        const program = gl.createProgram();
-        const vsS = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(vsS, vs); gl.compileShader(vsS);
-        const fsS = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(fsS, fs); gl.compileShader(fsS);
-        gl.attachShader(program, vsS); gl.attachShader(program, fsS);
-        gl.linkProgram(program);
-        gl.useProgram(program);
+<!-- RIGHT PANEL -->
+<div id="panel-right">
+  <div class="phdr"><div class="phdr-title">Live stats</div></div>
+  <div class="pscroll">
+    <div class="psec">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 20px">
+        <div class="stat"><span class="stat-v" id="st-fps">--</span><span class="stat-l">FPS</span></div>
+        <div class="stat"><span class="stat-v" id="st-nodes">1.0M</span><span class="stat-l">NODES</span></div>
+        <div class="stat"><span class="stat-v" id="st-dt">--</span><span class="stat-l">FRAME MS</span></div>
+        <div class="stat"><span class="stat-v" id="st-gpu">GPU</span><span class="stat-l">RENDERER</span></div>
+        <div class="stat"><span class="stat-v" id="st-tension">1.000</span><span class="stat-l">TENSION</span></div>
+        <div class="stat"><span class="stat-v" id="st-audio">0.000</span><span class="stat-l">AUDIO</span></div>
+      </div>
+    </div>
 
-        const uni = { time: gl.getUniformLocation(program, 'uTime'), proj: gl.getUniformLocation(program, 'uProj'), view: gl.getUniformLocation(program, 'uView'), model: gl.getUniformLocation(program, 'uModel'), mouse: gl.getUniformLocation(program, 'uMouse'), tension: gl.getUniformLocation(program, 'uTension'), maxNodes: gl.getUniformLocation(program, 'uMaxNodes') };
-        const MAX_COUNT = 16777216;
-        const idData = new Float32Array(MAX_COUNT);
-        for(let i=0; i<MAX_COUNT; i++) idData[i] = i;
-        const idBuf = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, idBuf);
-        gl.bufferData(gl.ARRAY_BUFFER, idData, gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 1, gl.FLOAT, false, 0, 0);
+    <div class="psec">
+      <div class="plabel">Scene info</div>
+      <div id="scene-info" style="font-size:12px;color:var(--ink-dim);line-height:1.7"></div>
+    </div>
 
-        const state = { rot: [0.3, 0.6], zoom: -65, mouse: [0,0,0], tension: 1, nodeCount: 1048576, lastTime: performance.now(), isDragging: false, inertia: [0, 0] };
-        const slider = document.getElementById('node-slider');
-        slider.addEventListener('input', (e) => { state.nodeCount = parseInt(e.target.value); document.getElementById('node-display').innerText = state.nodeCount.toLocaleString(); });
-        window.addEventListener('mousedown', () => state.isDragging = true);
-        window.addEventListener('mouseup', () => state.isDragging = false);
-        window.addEventListener('mousemove', e => {
-            if(state.isDragging) { state.inertia[0] = e.movementX * 0.004; state.inertia[1] = e.movementY * 0.004; state.rot[1] += state.inertia[0]; state.rot[0] += state.inertia[1]; }
-            state.mouse[0] = (e.clientX / window.innerWidth - 0.5) * 60;
-            state.mouse[1] = -(e.clientY / window.innerHeight - 0.5) * 50;
-        });
-        window.addEventListener('wheel', e => { state.zoom = Math.min(-15, Math.max(-250, state.zoom + e.deltaY * 0.12)); }, { passive: true });
+    <div class="psec">
+      <div class="plabel">Attractor equations</div>
+      <div style="font-family:'Syne Mono',monospace;font-size:10px;color:var(--ink-dim);line-height:2;letter-spacing:0.04em">
+        ẋ = (z−b)x − dy<br>
+        ẏ = dx + (z−b)y<br>
+        ż = c + az − z³/3 − (x²+y²)(1+ez) + fzx³
+      </div>
+    </div>
 
-        function render(now) {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            gl.viewport(0, 0, canvas.width, canvas.height);
-            const dt = now - state.lastTime; state.lastTime = now; const lag = Math.max(0, dt - 16.6);
-            if (lag > 2.0) { state.tension = Math.max(0.1, state.tension - 0.05); document.getElementById('nexus-status').innerText = "THROTTLING_ACTIVE"; document.getElementById('nexus-status').style.color = "var(--warn)"; }
-            else { state.tension = Math.min(1.0, state.tension + 0.01); document.getElementById('nexus-status').innerText = "STABLE_OSCILLATION"; document.getElementById('nexus-status').style.color = "var(--low)"; }
-            if(!state.isDragging) { state.rot[1] += state.inertia[0] + 0.0015; state.rot[0] += state.inertia[1]; state.inertia[0] *= 0.96; state.inertia[1] *= 0.96; }
-            gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            gl.clearColor(0, 0, 0.002, 1); gl.clear(gl.COLOR_BUFFER_BIT); gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-            const aspect = canvas.width / canvas.height;
-            const proj = new Float32Array([1.5/aspect,0,0,0, 0,1.5,0,0, 0,0,-1,-1, 0,0,-0.1,0]);
-            const view = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,state.zoom,1]);
-            const sx = Math.sin(state.rot[0]), cx = Math.cos(state.rot[0]), sy = Math.sin(state.rot[1]), cy = Math.cos(state.rot[1]);
-            const model = new Float32Array([cy, sy*sx, sy*cx, 0, 0, cx, -sx, 0, -sy, cy*sx, cy*cx, 0, 0, 0, 0, 1]);
-            gl.uniform1f(uni.time, now * 0.001); gl.uniformMatrix4fv(uni.proj, false, proj); gl.uniformMatrix4fv(uni.view, false, view); gl.uniformMatrix4fv(uni.model, false, model); gl.uniform3fv(uni.mouse, state.mouse); gl.uniform1f(uni.tension, state.tension); gl.uniform1f(uni.maxNodes, state.nodeCount);
-            gl.drawArrays(gl.POINTS, 0, state.nodeCount);
-            document.getElementById('lag-val').innerText = dt.toFixed(2) + "ms"; document.getElementById('tension-val').innerText = state.tension.toFixed(4);
-            requestAnimationFrame(render);
-        }
-        requestAnimationFrame(render);
-    </script>
+    <div class="psec">
+      <div class="plabel">Camera</div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Field of view</span><span class="kval" id="kv-fov">1.50</span></div>
+        <input type="range" id="sl-fov" min="0.5" max="3" step="0.05" value="1.5">
+      </div>
+      <div class="krow">
+        <div class="khdr"><span class="klbl">Auto-rotate</span><span class="kval" id="kv-rot">0.15</span></div>
+        <input type="range" id="sl-rot" min="0" max="1" step="0.01" value="0.15">
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="plabel">Blend mode</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px" id="blend-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottombar">
+  <div class="stats-row">
+    <div class="stat"><span class="stat-v" style="font-size:12px" id="bb-fps">-- fps</span><span class="stat-l">RENDER</span></div>
+    <div class="stat"><span class="stat-v" style="font-size:12px" id="bb-nodes">1.0M</span><span class="stat-l">PARTICLES</span></div>
+    <div class="stat"><span class="stat-v" style="font-size:12px" id="bb-scene">Nebula</span><span class="stat-l">SCENE</span></div>
+  </div>
+  <div style="display:flex;gap:5px;align-items:center">
+    <span style="font-family:'Syne Mono',monospace;font-size:9px;color:var(--ink-ghost);letter-spacing:0.15em">Drag to rotate · Scroll to zoom · H to hide UI</span>
+  </div>
+  <div style="display:flex;gap:5px">
+    <button class="act-btn" id="btn-rand">Randomise</button>
+    <button class="act-btn" id="btn-ss">Fullscreen</button>
+  </div>
+</div>
+
+<button id="toggle-chrome" title="Toggle UI (H)">⊠</button>
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CURSOR
+// ═══════════════════════════════════════════════════════
+const cursor=document.getElementById('cursor');
+const cdot=document.getElementById('cursor-dot');
+const cring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cdot.style.left=mx+'px';cdot.style.top=my+'px'});
+(function animCursor(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(animCursor)})();
+document.addEventListener('mousedown',()=>document.body.classList.add('clicking'));
+document.addEventListener('mouseup',()=>document.body.classList.remove('clicking'));
+document.querySelectorAll('button,input,label,.scene-card,.pal-sw').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('hovering'));
+});
+
+// ═══════════════════════════════════════════════════════
+// SCENES
+// ═══════════════════════════════════════════════════════
+const SCENES=[
+  {name:'Nebula',   tag:'Focus',    desc:'Dense stellar nursery. Particles orbit a gravitational core. Use for deep focus sessions.',
+   count:1048576,  speed:0.8,  turb:0.25, size:1.0,  pull:3.6,  spread:4.4, bloom:0.55, pal:0, rot:0.15},
+  {name:'Storm',    tag:'Energy',   desc:'High-turbulence field. Chaotic particle trajectories. Use when you need intensity and drive.',
+   count:2097152,  speed:2.4,  turb:1.6,  size:0.75, pull:4.8,  spread:3.0, bloom:0.85, pal:1, rot:0.25},
+  {name:'Pulse',    tag:'Calm',     desc:'Slow breathing geometry. Minimal turbulence, large soft points. Perfect for meditation.',
+   count:393216,   speed:0.35, turb:0.08, size:1.8,  pull:2.8,  spread:5.5, bloom:0.35, pal:2, rot:0.08},
+  {name:'Frost',    tag:'Deep',     desc:'Cool spectral tones. Mid-density field with crystalline clustering.',
+   count:786432,   speed:0.55, turb:0.2,  size:1.3,  pull:3.2,  spread:4.8, bloom:0.45, pal:3, rot:0.10},
+  {name:'Inferno',  tag:'Intense',  desc:'Maximum heat. Dense fast field. 2M+ particles at peak velocity.',
+   count:2097152,  speed:2.0,  turb:1.2,  size:0.7,  pull:5.5,  spread:2.8, bloom:0.92, pal:4, rot:0.30},
+  {name:'Void',     tag:'Meditate', desc:'Sparse, slow, enormous particles. The universe at 3am.',
+   count:262144,   speed:0.2,  turb:0.04, size:2.4,  pull:2.2,  spread:6.5, bloom:0.25, pal:5, rot:0.05},
+  {name:'Aurora',   tag:'Create',   desc:'Spectral sweep across the full colour space. Balanced for creative work.',
+   count:1310720,  speed:1.0,  turb:0.6,  size:1.0,  pull:3.6,  spread:4.4, bloom:0.70, pal:6, rot:0.18},
+  {name:'Cascade',  tag:'Flow',     desc:'Filament-heavy structure. Helical strand geometry dominates.',
+   count:917504,   speed:1.3,  turb:0.9,  size:0.9,  pull:4.0,  spread:4.0, bloom:0.60, pal:7, rot:0.20},
+  {name:'Crystal',  tag:'Sharp',    desc:'High-contrast sparse field. Every particle earns its place.',
+   count:524288,   speed:0.7,  turb:0.35, size:1.1,  pull:3.0,  spread:5.0, bloom:0.40, pal:8, rot:0.12},
+  {name:'Singularity',tag:'Max',   desc:'Everything, at once. Push the GPU to its limit.',
+   count:4194304,  speed:1.5,  turb:0.8,  size:0.6,  pull:5.0,  spread:3.5, bloom:0.80, pal:1, rot:0.22},
+];
+
+const PALETTES=[
+  {n:'Cosmic',   a:[0.5,0.5,0.5],  b:[0.5,0.5,0.5],   c:[1.0,1.0,1.0],  d:[0.0,0.33,0.67]},
+  {n:'Thunder',  a:[0.8,0.5,0.4],  b:[0.2,0.4,0.2],   c:[2.0,1.0,1.0],  d:[0.0,0.25,0.25]},
+  {n:'Ocean',    a:[0.5,0.5,0.7],  b:[0.5,0.5,0.5],   c:[1.0,1.0,0.5],  d:[0.8,0.9,0.3]},
+  {n:'Frost',    a:[0.6,0.7,0.9],  b:[0.4,0.3,0.3],   c:[1.0,0.7,0.8],  d:[0.0,0.15,0.20]},
+  {n:'Ember',    a:[0.9,0.4,0.2],  b:[0.4,0.3,0.1],   c:[1.5,1.0,0.5],  d:[0.0,0.1,0.2]},
+  {n:'Void',     a:[0.2,0.2,0.3],  b:[0.5,0.5,0.5],   c:[0.8,0.8,1.0],  d:[0.3,0.4,0.6]},
+  {n:'Aurora',   a:[0.5,0.8,0.6],  b:[0.5,0.2,0.5],   c:[1.0,0.6,0.8],  d:[0.1,0.4,0.7]},
+  {n:'Dusk',     a:[0.7,0.4,0.6],  b:[0.3,0.5,0.3],   c:[1.0,0.8,1.0],  d:[0.0,0.2,0.5]},
+  {n:'Mint',     a:[0.4,0.8,0.6],  b:[0.3,0.3,0.5],   c:[1.2,0.8,0.8],  d:[0.2,0.5,0.8]},
+];
+
+const SW_COLS=['#8ecfff','#ff9eb8','#8bffd4','#ffcc88','#c488ff','#ff8888','#88faf0','#e0c8ff','#88ffcc'];
+const BLENDS=['Normal','Screen','Add','Multiply','Overlay'];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const S={
+  sceneIdx:0, palIdx:0,
+  count:1048576, speed:0.8, turb:0.25, size:1.0, pull:3.6, spread:4.4, bloom:0.55,
+  rot:[0.3,0.6], zoom:-65, mouse:[0,0,0],
+  isDrag:false, inertia:[0,0],
+  tension:1.0, audioGain:0, sens:1.0,
+  fov:1.5, autoRot:0.15,
+  tiltX:0.0, tiltY:0.0, symmetry:0, gravity:0.0, zScale:1.0,
+  lastT:performance.now(), fps:0, ff:0, fpsLast:performance.now(),
+  dt:0, blendIdx:2, chromaHidden:false,
+};
+
+// ═══════════════════════════════════════════════════════
+// WEBGL — DUAL PASS
+// ═══════════════════════════════════════════════════════
+const glC=document.getElementById('glCanvas');
+const gl=glC.getContext('webgl2',{antialias:false,preserveDrawingBuffer:true});
+const bC=document.getElementById('bloomCanvas');
+const bc2=bC.getContext('2d');
+
+// Detect GPU name
+try{
+  const ext=gl.getExtension('WEBGL_debug_renderer_info');
+  if(ext) document.getElementById('st-gpu').textContent=gl.getParameter(ext.UNMASKED_RENDERER_WEBGL).split('/')[0].trim().slice(0,12);
+}catch(e){}
+
+const VS=`#version 300 es
+uniform float uT,uTension,uMax,uSpeed,uTurb,uSize,uAudio,uPull,uSpread,uFov;
+uniform float uTiltX,uTiltY,uSymmetry,uGravity,uZScale;
+uniform vec3 uPA,uPB,uPC,uPD,uMouse;
+uniform mat4 uProj,uView,uModel;
+layout(location=0) in float aId;
+out vec3 vCol; out float vA;
+float hash(float n){return fract(sin(n)*43758.5453);}
+vec3 palette(float t){return uPA+uPB*cos(6.28318*(uPC*t+uPD+uT*0.035));}
+void main(){
+  float seed=hash(aId);
+  float flow=uT*0.08*uSpeed+(aId*0.000001)+(seed*0.2);
+  float x=sin(flow*11.0),y=cos(flow*9.0);
+  // uZScale re-centres the z distribution: 0=flat, 1=original, -1=inverted
+  float z=(seed*2.0-1.0)*7.0*uZScale + 7.0;
+  vec3 pos=vec3((z-0.7)*x-3.5*y,3.5*x+(z-0.7)*y,0.6+0.95*z-(z*z*z)/3.0-(x*x+y*y)*(1.0+0.25*z)+0.1*z*(x*x*x))*uPull;
+  // Symmetry: mirror second half of particles over XZ plane (eliminates the spike)
+  float hemi=aId>(uMax/2.0)?1.0:-1.0;
+  pos.x+=hemi*uSpread;
+  if(uSymmetry>0.5) pos.y=abs(pos.y)*sign(hemi);
+  // Gravity tilt — rotate the whole field on X and Z axes
+  float tx=uTiltX,ty=uTiltY;
+  mat2 rotX=mat2(cos(tx),-sin(tx),sin(tx),cos(tx));
+  mat2 rotY=mat2(cos(ty),-sin(ty),sin(ty),cos(ty));
+  pos.yz=rotX*pos.yz;
+  pos.xz=rotY*pos.xz;
+  // Downward gravity bias
+  pos.y-=uGravity*z*0.4;
+  float t2=aId*0.00002+seed*0.1;
+  float r=4.0+sin(t2*70.0+uT)*2.5;
+  vec3 strand=vec3(r*cos(t2*250.0),(t2*50.0)-25.0,r*sin(t2*250.0));
+  pos=mix(pos,strand,clamp(sin(aId*0.01),0.0,1.0)*0.35);
+  pos+=sin(pos.yzx*0.35+uT)*(uTurb+uAudio*2.2);
+  float focus=clamp(1.0-length(pos-uMouse)/18.0,0.0,1.0);
+  vec4 mv=uView*uModel*vec4(pos,1.0);
+  gl_Position=uProj*mv;
+  float vel=length(vec3(x,y,z))*0.05;
+  float intensity=clamp(uTension+pow(focus,3.0)+vel+uAudio*0.6,0.0,1.8);
+  vCol=palette((aId/uMax)+focus*0.3+vel);
+  if(intensity>1.2)vCol=mix(vCol,vec3(1.0),(intensity-1.2)*2.5);
+  gl_PointSize=clamp((1.1+intensity*4.5+focus*5.0)*uSize*(50.0/-mv.z),0.3,24.0);
+  vA=0.04+intensity*0.96;
+}`;
+
+const FS=`#version 300 es
+precision highp float;
+in vec3 vCol; in float vA;
+out vec4 fc;
+void main(){
+  float d=distance(gl_PointCoord,vec2(0.5));
+  if(d>0.5)discard;
+  float soft=pow(1.0-d*2.0,3.5);
+  fc=vec4(vCol,soft*vA);
+}`;
+
+function mkShader(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
+const prog=gl.createProgram();
+gl.attachShader(prog,mkShader(gl.VERTEX_SHADER,VS));
+gl.attachShader(prog,mkShader(gl.FRAGMENT_SHADER,FS));
+gl.linkProgram(prog);gl.useProgram(prog);
+
+const MAX=4194304;
+const ids=new Float32Array(MAX);for(let i=0;i<MAX;i++)ids[i]=i;
+const buf=gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,ids,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,1,gl.FLOAT,false,0,0);
+
+const U={};
+['uT','uProj','uView','uModel','uMouse','uTension','uMax','uSpeed','uTurb','uSize','uAudio','uPull','uSpread','uFov','uTiltX','uTiltY','uSymmetry','uGravity','uZScale','uPA','uPB','uPC','uPD'].forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+
+// ═══════════════════════════════════════════════════════
+// BLOOM PASS (canvas2d gaussian on downsampled frame)
+// ═══════════════════════════════════════════════════════
+let bloomFrame=0;
+function doBloom(){
+  if(S.bloom<0.05){bc2.clearRect(0,0,bC.width,bC.height);return;}
+  bloomFrame++;
+  if(bloomFrame%3!==0)return; // every 3rd frame
+  const w=bC.width,h=bC.height;
+  bc2.clearRect(0,0,w,h);
+  const scale=0.25;
+  const sw=Math.floor(w*scale),sh=Math.floor(h*scale);
+  const off=document.createElement('canvas');off.width=sw;off.height=sh;
+  const oc=off.getContext('2d');
+  oc.drawImage(glC,0,0,sw,sh);
+  const blur=Math.round(S.bloom*18+4);
+  bc2.filter=`blur(${blur}px)`;
+  bc2.globalAlpha=S.bloom*0.7;
+  bc2.drawImage(off,0,0,w,h);
+  bc2.filter='none';bc2.globalAlpha=1;
+}
+
+// ═══════════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════════
+let analyser=null,aData=null;
+const NBARS=32;
+const specWrap=document.getElementById('spectrum-wrap');
+for(let i=0;i<NBARS;i++){const b=document.createElement('div');b.className='spec-bar';b.style.height='2px';specWrap.appendChild(b);}
+const specBars=specWrap.querySelectorAll('.spec-bar');
+
+document.getElementById('aud-tog').addEventListener('change',async function(){
+  if(this.checked){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+      const ctx=new AudioContext();
+      const src=ctx.createMediaStreamSource(stream);
+      analyser=ctx.createAnalyser();analyser.fftSize=128;
+      src.connect(analyser);aData=new Uint8Array(analyser.frequencyBinCount);
+    }catch(e){this.checked=false;toast('Microphone access denied');}
+  }else{analyser=null;aData=null;S.audioGain=0;}
+});
+
+document.getElementById('sl-sens').addEventListener('input',function(){
+  S.sens=parseFloat(this.value);
+  document.getElementById('kv-sens').textContent=S.sens.toFixed(1)+'×';
+  setSliderFill(this);
+});
+
+function updateAudio(){
+  if(!analyser||!aData){S.audioGain*=0.88;specBars.forEach(b=>b.style.height='2px');return;}
+  analyser.getByteFrequencyData(aData);
+  let sum=0;
+  const step=Math.floor(aData.length/NBARS);
+  specBars.forEach((b,i)=>{
+    const v=(aData[i*step]||0)/255;
+    const h=Math.max(2,v*S.sens*44);
+    b.style.height=h+'px';
+    const hue=200+i*4;
+    b.style.background=`hsl(${hue},80%,75%)`;
+    sum+=v;
+  });
+  const avg=(sum/NBARS)*S.sens;
+  S.audioGain=S.audioGain*0.65+avg*0.35;
+  document.getElementById('st-audio').textContent=S.audioGain.toFixed(3);
+}
+
+// ═══════════════════════════════════════════════════════
+// SLIDER FILL
+// ═══════════════════════════════════════════════════════
+function setSliderFill(el){
+  const pct=((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%';
+  el.style.setProperty('--pct',pct);
+}
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  setSliderFill(el);
+  el.addEventListener('input',()=>setSliderFill(el));
+});
+
+// ═══════════════════════════════════════════════════════
+// SLIDERS WIRE-UP
+// ═══════════════════════════════════════════════════════
+function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return n;}
+
+const sliders={
+  'sl-count': v=>{S.count=parseInt(v);['kv-count','st-nodes','bb-nodes'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmt(S.count);});S.sceneIdx=-1;updateSceneHighlight();},
+  'sl-speed': v=>{S.speed=parseFloat(v);document.getElementById('kv-speed').textContent=parseFloat(v).toFixed(2)+'×';},
+  'sl-turb':  v=>{S.turb=parseFloat(v);document.getElementById('kv-turb').textContent=parseFloat(v).toFixed(2);},
+  'sl-size':  v=>{S.size=parseFloat(v);document.getElementById('kv-size').textContent=parseFloat(v).toFixed(2)+'×';},
+  'sl-pull':  v=>{S.pull=parseFloat(v);document.getElementById('kv-pull').textContent=parseFloat(v).toFixed(2);},
+  'sl-spread':v=>{S.spread=parseFloat(v);document.getElementById('kv-spread').textContent=parseFloat(v).toFixed(2);},
+  'sl-bloom': v=>{S.bloom=parseFloat(v);document.getElementById('kv-bloom').textContent=parseFloat(v).toFixed(2);},
+  'sl-fov':   v=>{S.fov=parseFloat(v);document.getElementById('kv-fov').textContent=parseFloat(v).toFixed(2);},
+  'sl-rot':   v=>{S.autoRot=parseFloat(v);document.getElementById('kv-rot').textContent=parseFloat(v).toFixed(2);},
+  'sl-tiltX': v=>{S.tiltX=parseFloat(v);document.getElementById('kv-tiltX').textContent=parseFloat(v).toFixed(2);},
+  'sl-tiltY': v=>{S.tiltY=parseFloat(v);document.getElementById('kv-tiltY').textContent=parseFloat(v).toFixed(2);},
+  'sl-gravity':v=>{S.gravity=parseFloat(v);document.getElementById('kv-gravity').textContent=parseFloat(v).toFixed(2);},
+  'sl-zscale': v=>{S.zScale=parseFloat(v);document.getElementById('kv-zscale').textContent=parseFloat(v).toFixed(2);},
+};
+Object.entries(sliders).forEach(([id,fn])=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input',e=>{fn(e.target.value);setSliderFill(e.target);});
+});
+
+// Symmetry
+document.getElementById('sym-off').addEventListener('click',()=>{
+  S.symmetry=0;
+  document.getElementById('sym-off').className='tbtn go';
+  document.getElementById('sym-on').className='tbtn';
+  document.getElementById('kv-sym').textContent='Off';
+});
+document.getElementById('sym-on').addEventListener('click',()=>{
+  S.symmetry=1;
+  document.getElementById('sym-on').className='tbtn go';
+  document.getElementById('sym-off').className='tbtn';
+  document.getElementById('kv-sym').textContent='Mirror';
+});
+
+// Reset flow
+document.getElementById('btn-reset-flow').addEventListener('click',()=>{
+  S.tiltX=0;S.tiltY=0;S.gravity=0;S.zScale=1;S.symmetry=0;
+  ['tiltX','tiltY','gravity'].forEach(k=>{const el=document.getElementById('sl-'+k);if(el){el.value=0;setSliderFill(el);}});
+  document.getElementById('sl-zscale').value=1;setSliderFill(document.getElementById('sl-zscale'));
+  document.getElementById('kv-tiltX').textContent='0.00';
+  document.getElementById('kv-tiltY').textContent='0.00';
+  document.getElementById('kv-gravity').textContent='0.00';
+  document.getElementById('kv-zscale').textContent='1.00';
+  document.getElementById('sym-off').className='tbtn go';
+  document.getElementById('sym-on').className='tbtn';
+  document.getElementById('kv-sym').textContent='Off';
+  toast('Flow reset ✓');
+});
+
+// ═══════════════════════════════════════════════════════
+// SCENE GRID
+// ═══════════════════════════════════════════════════════
+const sceneGrid=document.getElementById('scene-grid');
+const gradients=[
+  'radial-gradient(circle at 30% 70%,rgba(100,160,255,0.18),transparent)',
+  'radial-gradient(circle at 70% 30%,rgba(255,120,80,0.2),transparent)',
+  'radial-gradient(circle at 50% 50%,rgba(80,255,180,0.15),transparent)',
+  'radial-gradient(circle at 20% 80%,rgba(100,180,255,0.18),transparent)',
+  'radial-gradient(circle at 80% 20%,rgba(255,80,80,0.22),transparent)',
+  'radial-gradient(circle at 50% 50%,rgba(80,80,200,0.15),transparent)',
+  'radial-gradient(circle at 60% 40%,rgba(120,255,180,0.18),transparent)',
+  'radial-gradient(circle at 40% 60%,rgba(200,100,255,0.15),transparent)',
+  'radial-gradient(circle at 50% 50%,rgba(100,255,220,0.18),transparent)',
+  'radial-gradient(circle at 50% 50%,rgba(255,200,100,0.15),transparent)',
+];
+
+SCENES.forEach((s,i)=>{
+  const card=document.createElement('button');
+  card.className='scene-card'+(i===0?' active':'');
+  card.innerHTML=`<span class="scene-nm">${s.name}</span><span class="scene-tg">${s.tag}</span><div class="scene-dot" style="background:${SW_COLS[s.pal%SW_COLS.length]}"></div>`;
+  card.style.setProperty('--grad',gradients[i%gradients.length]);
+  if(i===0){card.style.background=gradients[i%gradients.length];}
+  card.addEventListener('click',()=>applyScene(i));
+  sceneGrid.appendChild(card);
+});
+
+function updateSceneHighlight(){
+  document.querySelectorAll('.scene-card').forEach((c,i)=>{
+    c.classList.toggle('active',i===S.sceneIdx);
+    c.style.background=i===S.sceneIdx?gradients[i%gradients.length]:'transparent';
+  });
+}
+
+function applyScene(i){
+  const sc=SCENES[i];
+  S.sceneIdx=i;S.palIdx=sc.pal;
+  S.count=sc.count;S.speed=sc.speed;S.turb=sc.turb;S.size=sc.size;
+  S.pull=sc.pull;S.spread=sc.spread;S.bloom=sc.bloom;S.autoRot=sc.rot;
+  const vals={count:sc.count,speed:sc.speed,turb:sc.turb,size:sc.size,pull:sc.pull,spread:sc.spread,bloom:sc.bloom,rot:sc.rot};
+  Object.entries(vals).forEach(([k,v])=>{
+    const el=document.getElementById('sl-'+k);
+    if(el){el.value=v;setSliderFill(el);}
+  });
+  document.getElementById('sl-rot').value=sc.rot;setSliderFill(document.getElementById('sl-rot'));
+  document.getElementById('kv-count').textContent=fmt(sc.count);
+  document.getElementById('kv-speed').textContent=sc.speed.toFixed(2)+'×';
+  document.getElementById('kv-turb').textContent=sc.turb.toFixed(2);
+  document.getElementById('kv-size').textContent=sc.size.toFixed(2)+'×';
+  document.getElementById('kv-pull').textContent=sc.pull.toFixed(2);
+  document.getElementById('kv-spread').textContent=sc.spread.toFixed(2);
+  document.getElementById('kv-bloom').textContent=sc.bloom.toFixed(2);
+  document.getElementById('kv-rot').textContent=sc.rot.toFixed(2);
+  ['st-nodes','bb-nodes'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmt(sc.count);});
+  document.getElementById('bb-scene').textContent=sc.name;
+  document.getElementById('scene-info').innerHTML=sc.desc+'<br><br><span style="font-family:\'Syne Mono\',monospace;font-size:10px;color:var(--ink-ghost)">'+fmt(sc.count)+' nodes · '+sc.speed.toFixed(1)+'× speed</span>';
+  updateSceneHighlight();
+  updatePalHighlight();
+  flashSceneName(sc);
+}
+
+function flashSceneName(sc){
+  const el=document.getElementById('scene-name');
+  document.getElementById('scene-title').textContent=sc.name.toUpperCase();
+  document.getElementById('scene-sub').textContent=sc.tag.toUpperCase()+' · '+fmt(sc.count)+' NODES';
+  el.classList.remove('hidden');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.add('hidden'),2000);
+}
+
+// Init first scene info
+applyScene(0);
+
+// ═══════════════════════════════════════════════════════
+// PALETTE
+// ═══════════════════════════════════════════════════════
+const palGrid=document.getElementById('pal-grid');
+SW_COLS.forEach((c,i)=>{
+  const sw=document.createElement('div');
+  sw.className='pal-sw'+(i===0?' active':'');
+  sw.style.background=c;
+  sw.title=PALETTES[i]?PALETTES[i].n:'';
+  sw.addEventListener('click',()=>{S.palIdx=i;updatePalHighlight();S.sceneIdx=-1;updateSceneHighlight();});
+  palGrid.appendChild(sw);
+});
+function updatePalHighlight(){document.querySelectorAll('.pal-sw').forEach((s,i)=>s.classList.toggle('active',i===S.palIdx));}
+
+// ═══════════════════════════════════════════════════════
+// BLEND MODES
+// ═══════════════════════════════════════════════════════
+const blendGrid=document.getElementById('blend-grid');
+BLENDS.forEach((b,i)=>{
+  const btn=document.createElement('button');
+  btn.className='tbtn'+(i===S.blendIdx?' go':'');
+  btn.textContent=b;btn.style.fontSize='10px';btn.style.padding='5px';
+  btn.addEventListener('click',()=>{
+    S.blendIdx=i;
+    document.querySelectorAll('#blend-grid .tbtn').forEach((b,j)=>b.classList.toggle('go',j===i));
+    const modes=['source-over','screen','lighter','multiply','overlay'];
+    bC.style.mixBlendMode=modes[i]||'screen';
+    glC.style.mixBlendMode=i===3?'multiply':'normal';
+  });
+  blendGrid.appendChild(btn);
+});
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+document.querySelectorAll('.nav-pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    const tab=pill.dataset.tab;
+    document.querySelectorAll('.nav-pill').forEach(p=>p.classList.toggle('active',p===pill));
+    document.getElementById('tab-scenes').style.display=tab==='scenes'?'':'none';
+    document.getElementById('tab-params').style.display=tab==='params'?'':'none';
+    document.getElementById('tab-flow').style.display=tab==='flow'?'':'none';
+    document.getElementById('tab-timer').style.display=tab==='timer'?'':'none';
+    document.getElementById('left-title').textContent=tab.charAt(0).toUpperCase()+tab.slice(1);
+    document.getElementById('pal-section').style.display=tab==='timer'?'none':'';
+  });
+});
+
+// ═══════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════
+const PHASES=[{l:'Focus session',m:25},{l:'Short break',m:5},{l:'Long break',m:15}];
+let tPhase=0,tSecs=1500,tRunning=false,tIv=null;
+const circ=238.76;
+
+function updateTimer(){
+  const m=Math.floor(tSecs/60),s=tSecs%60;
+  document.getElementById('t-display').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const total=PHASES[tPhase].m*60;
+  document.getElementById('t-ring').style.strokeDashoffset=circ*(tSecs/total);
+  document.getElementById('t-phase').textContent=PHASES[tPhase].l;
+}
+
+document.getElementById('t-start').addEventListener('click',function(){
+  if(tRunning){clearInterval(tIv);tRunning=false;this.textContent='Resume';}
+  else{tRunning=true;this.textContent='Pause';tIv=setInterval(()=>{if(tSecs>0){tSecs--;updateTimer();}else{clearInterval(tIv);tRunning=false;tPhase=(tPhase+1)%PHASES.length;tSecs=PHASES[tPhase].m*60;document.getElementById('t-start').textContent='Start';updateTimer();}},1000);}
+});
+document.getElementById('t-reset').addEventListener('click',()=>{clearInterval(tIv);tRunning=false;tPhase=0;tSecs=1500;document.getElementById('t-start').textContent='Start';updateTimer();});
+document.getElementById('t-skip').addEventListener('click',()=>{clearInterval(tIv);tRunning=false;tPhase=(tPhase+1)%PHASES.length;tSecs=PHASES[tPhase].m*60;document.getElementById('t-start').textContent='Start';updateTimer();});
+updateTimer();
+
+// ═══════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════
+window.addEventListener('mousedown',e=>{if(e.target===glC||e.target===bC||e.target.id==='vig'||e.target.id==='grain'||e.target.id==='canvas-wrap')S.isDrag=true;});
+window.addEventListener('mouseup',()=>S.isDrag=false);
+window.addEventListener('mousemove',e=>{
+  if(S.isDrag){S.inertia[0]=e.movementX*0.004;S.inertia[1]=e.movementY*0.004;S.rot[1]+=S.inertia[0];S.rot[0]+=S.inertia[1];}
+  S.mouse[0]=(e.clientX/window.innerWidth-0.5)*60;
+  S.mouse[1]=-(e.clientY/window.innerHeight-0.5)*50;
+});
+window.addEventListener('wheel',e=>{S.zoom=Math.min(-12,Math.max(-300,S.zoom+e.deltaY*0.15));},{passive:true});
+
+// KEYBOARD
+window.addEventListener('keydown',e=>{
+  if(e.key==='h'||e.key==='H') toggleChrome();
+  if(e.key==='r'||e.key==='R') randomise();
+  if(e.key==='s'||e.key==='S') exportPng();
+  const n=parseInt(e.key);if(n>=1&&n<=SCENES.length)applyScene(n-1);
+});
+
+// ═══════════════════════════════════════════════════════
+// CHROME TOGGLE
+// ═══════════════════════════════════════════════════════
+function toggleChrome(){
+  S.chromaHidden=!S.chromaHidden;
+  ['panel-left','panel-right','topbar','bottombar'].forEach(id=>{
+    document.getElementById(id).classList.toggle('hidden',S.chromaHidden);
+  });
+  document.getElementById('topbar').classList.toggle('full',S.chromaHidden);
+  document.getElementById('bottombar').classList.toggle('full',S.chromaHidden);
+}
+document.getElementById('toggle-chrome').addEventListener('click',toggleChrome);
+
+// ═══════════════════════════════════════════════════════
+// RANDOMISE
+// ═══════════════════════════════════════════════════════
+function randomise(){
+  S.speed=0.2+Math.random()*2.5;
+  S.turb=Math.random()*1.5;
+  S.size=0.4+Math.random()*2.5;
+  S.pull=2+Math.random()*4;
+  S.spread=1+Math.random()*7;
+  S.bloom=Math.random();
+  S.palIdx=Math.floor(Math.random()*PALETTES.length);
+  S.sceneIdx=-1;
+  updateSceneHighlight();updatePalHighlight();
+  ['speed','turb','size','pull','spread','bloom'].forEach(k=>{
+    const el=document.getElementById('sl-'+k);
+    if(el){el.value=S[k];setSliderFill(el);}
+  });
+  toast('Randomised ✓');
+}
+document.getElementById('btn-rand').addEventListener('click',randomise);
+
+// ═══════════════════════════════════════════════════════
+// EXPORT + SHARE
+// ═══════════════════════════════════════════════════════
+function exportPng(){
+  const link=document.createElement('a');link.download='neuro-synchron.png';link.href=glC.toDataURL('image/png');link.click();
+  toast('Saved PNG ↓');
+}
+document.getElementById('btn-export').addEventListener('click',exportPng);
+
+document.getElementById('btn-share').addEventListener('click',()=>{
+  const p=new URLSearchParams({si:S.sceneIdx,pi:S.palIdx,sp:S.speed.toFixed(2),tu:S.turb.toFixed(2),sz:S.size.toFixed(2),pu:S.pull.toFixed(2),sr:S.spread.toFixed(2),bl:S.bloom.toFixed(2)});
+  navigator.clipboard.writeText(location.href.split('?')[0]+'?'+p).then(()=>toast('Link copied ✓'));
+});
+
+document.getElementById('btn-ss').addEventListener('click',()=>{
+  if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+});
+
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// URL restore
+const UP=new URLSearchParams(location.search);
+if(UP.has('si')){
+  const si=parseInt(UP.get('si'));
+  if(si>=0&&si<SCENES.length)applyScene(si);
+  if(UP.has('sp'))S.speed=parseFloat(UP.get('sp'));
+  if(UP.has('tu'))S.turb=parseFloat(UP.get('tu'));
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER LOOP
+// ═══════════════════════════════════════════════════════
+function render(now){
+  const W=window.innerWidth,H=window.innerHeight;
+  if(glC.width!==W||glC.height!==H){glC.width=bC.width=W;glC.height=bC.height=H;}
+  gl.viewport(0,0,W,H);
+
+  S.dt=now-S.lastT;S.lastT=now;
+  const lag=Math.max(0,S.dt-16.6);
+  if(lag>2.5)S.tension=Math.max(0.1,S.tension-0.04);
+  else S.tension=Math.min(1.0,S.tension+0.008);
+
+  S.ff++;
+  if(now-S.fpsLast>600){
+    S.fps=Math.round(S.ff*1000/(now-S.fpsLast));
+    ['st-fps','bb-fps'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=S.fps+(id==='bb-fps'?' fps':'');});
+    document.getElementById('st-dt').textContent=S.dt.toFixed(1);
+    document.getElementById('st-tension').textContent=S.tension.toFixed(3);
+    S.ff=0;S.fpsLast=now;
+  }
+
+  const isWarn=lag>2.5;
+  document.getElementById('sdot').className='sdot'+(isWarn?' warn':'');
+  document.getElementById('stxt').textContent=isWarn?'THROTTLING':'RUNNING';
+
+  if(!S.isDrag){
+    S.rot[1]+=S.inertia[0]+S.autoRot*0.001;
+    S.rot[0]+=S.inertia[1];
+    S.inertia[0]*=0.96;S.inertia[1]*=0.96;
+  }
+
+  updateAudio();
+
+  gl.enable(gl.BLEND);
+  gl.clearColor(0.008,0.01,0.016,1);gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+
+  const aspect=W/H;
+  const fv=S.fov;
+  const proj=new Float32Array([fv/aspect,0,0,0,0,fv,0,0,0,0,-1,-1,0,0,-0.1,0]);
+  const view=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,S.zoom,1]);
+  const sx=Math.sin(S.rot[0]),cx=Math.cos(S.rot[0]),sy=Math.sin(S.rot[1]),cy=Math.cos(S.rot[1]);
+  const model=new Float32Array([cy,sy*sx,sy*cx,0,0,cx,-sx,0,-sy,cy*sx,cy*cx,0,0,0,0,1]);
+
+  const pal=PALETTES[S.palIdx]||PALETTES[0];
+  gl.uniform1f(U.uT,now*0.001);
+  gl.uniformMatrix4fv(U.uProj,false,proj);gl.uniformMatrix4fv(U.uView,false,view);gl.uniformMatrix4fv(U.uModel,false,model);
+  gl.uniform3fv(U.uMouse,S.mouse);
+  gl.uniform1f(U.uTension,S.tension);gl.uniform1f(U.uMax,S.count);
+  gl.uniform1f(U.uSpeed,S.speed);gl.uniform1f(U.uTurb,S.turb);
+  gl.uniform1f(U.uSize,S.size);gl.uniform1f(U.uAudio,S.audioGain);
+  gl.uniform1f(U.uPull,S.pull);gl.uniform1f(U.uSpread,S.spread);
+  gl.uniform1f(U.uFov,S.fov);
+  gl.uniform1f(U.uTiltX,S.tiltX);gl.uniform1f(U.uTiltY,S.tiltY);
+  gl.uniform1f(U.uSymmetry,S.symmetry);gl.uniform1f(U.uGravity,S.gravity);
+  gl.uniform1f(U.uZScale,S.zScale);
+  gl.uniform3fv(U.uPA,new Float32Array(pal.a));gl.uniform3fv(U.uPB,new Float32Array(pal.b));
+  gl.uniform3fv(U.uPC,new Float32Array(pal.c));gl.uniform3fv(U.uPD,new Float32Array(pal.d));
+
+  gl.drawArrays(gl.POINTS,0,S.count);
+
+  doBloom();
+
+  requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+</script>
 </body>
 </html>
